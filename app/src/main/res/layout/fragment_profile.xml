@@ -232,7 +232,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <ImageView
+                <ImageButton
                     android:id="@+id/images_grid_view_btn"
                     style="?android:attr/buttonBarButtonStyle"
                     android:src="@drawable/grid"
@@ -240,7 +240,7 @@
                     android:layout_weight="1"
                     android:layout_height="wrap_content"/>
 
-                <ImageView
+                <ImageButton
                     android:id="@+id/images_save_btn"
                     style="?android:attr/buttonBarButtonStyle"
                     android:src="@drawable/save_large_icon"

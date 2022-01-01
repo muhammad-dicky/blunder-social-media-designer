@@ -37,7 +37,7 @@
                 android:textStyle="bold"
                 android:layout_marginLeft="5dp"
                 android:layout_marginTop="14dp"
-                android:textColor="@color/colorPrimaryDark"
+                android:textColor="@color/pallete3"
                 />
 
         </LinearLayout>
@@ -109,7 +109,7 @@
             android:layout_marginStart="10dp"
             android:textStyle="bold"
             android:textSize="15dp"
-            android:textColor="@color/colorPrimaryDark"
+            android:textColor="@color/pallete3"
             />
 
         <TextView
@@ -119,7 +119,7 @@
             android:layout_marginStart="10dp"
             android:textStyle="bold"
             android:textSize="15dp"
-            android:textColor="@color/colorPrimaryDark"
+            android:textColor="@color/pallete3"
             />
 
         <TextView
@@ -128,7 +128,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:textSize="15dp"
-            android:textColor="@color/colorPrimary"
+            android:textColor="@color/pallete2"
             />
 
         <TextView
@@ -140,7 +140,7 @@
             android:textSize="16dp"
             android:layout_marginBottom="5dp"
             android:text=""
-            android:textColor="@color/colorPrimary"
+            android:textColor="@color/pallete2"
             />
 
 

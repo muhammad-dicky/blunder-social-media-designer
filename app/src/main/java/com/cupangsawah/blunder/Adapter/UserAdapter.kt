@@ -1,6 +1,7 @@
 package com.cupangsawah.blunder.Adapter
 
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +11,7 @@ import androidx.annotation.NonNull
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.cupangsawah.blunder.Fragments.ProfileFragment
+import com.cupangsawah.blunder.MainActivity
 import com.cupangsawah.blunder.Model.User
 import com.cupangsawah.blunder.R
 import com.google.firebase.auth.FirebaseAuth
@@ -37,8 +39,8 @@ class UserAdapter (private var mContext: Context,
 
     override fun onBindViewHolder(holder: UserAdapter.ViewHolder, position: Int) {
 
-
         val user = mUser[position]
+
         holder.userNameTextView.text = user.getUsername()
         holder.userFullnameTextView.text = user.getFullname()
         Picasso.get().load(user.getImage()).placeholder(R.drawable.profile).into(holder.userProfileImage)
@@ -46,12 +48,20 @@ class UserAdapter (private var mContext: Context,
         checkFollowingStatus(user.getUID(), holder.followButton)
 
         holder.itemView.setOnClickListener(View.OnClickListener {
-            val pref = mContext.getSharedPreferences("PREFS", Context.MODE_PRIVATE).edit()
-            pref.putString("profileId", user.getUID())
-            pref.apply()
+           if (isFragment)
+           {
+               val pref = mContext.getSharedPreferences("PREFS", Context.MODE_PRIVATE).edit()
+               pref.putString("profileId", user.getUID())
+               pref.apply()
 
-            (mContext as FragmentActivity).supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, ProfileFragment()).commit()
+               (mContext as FragmentActivity).supportFragmentManager.beginTransaction()
+                       .replace(R.id.fragment_container, ProfileFragment()).commit()
+           }
+            else{
+                val intent = Intent(mContext, MainActivity::class.java)
+               intent.putExtra("publisherId", user.getUID())
+               mContext.startActivity(intent)
+           }
         })
 
         //set profile untuk mengambil data follow/follower
@@ -75,7 +85,9 @@ class UserAdapter (private var mContext: Context,
                                 }
                             }
                         }
+
                 }
+                addNotification(user.getUID())
             }
             else{
                 firebaseUser?.uid.let { it1 ->
@@ -135,6 +147,22 @@ class UserAdapter (private var mContext: Context,
             }
         })
 
+    }
+
+
+    private fun addNotification (userId: String)
+    {
+        val notiRef = FirebaseDatabase.getInstance()
+                .reference.child("Notifications")
+                .child(userId)
+
+        val notiMap = HashMap<String, Any>()
+        notiMap["userid"] = firebaseUser!!.uid
+        notiMap["text"] = "started following you"
+        notiMap["postid"] = ""
+        notiMap["ispost"] = false
+
+        notiRef.push().setValue(notiMap)
     }
 
 

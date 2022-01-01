@@ -14,6 +14,7 @@ import com.cupangsawah.blunder.MainActivity
 import com.cupangsawah.blunder.Model.Post
 import com.cupangsawah.blunder.Model.User
 import com.cupangsawah.blunder.R
+import com.cupangsawah.blunder.ShowUsersActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DataSnapshot
@@ -22,6 +23,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.squareup.picasso.Picasso
 import de.hdodenhof.circleimageview.CircleImageView
+import kotlinx.android.synthetic.main.activity_comments.*
 
 class PostAdapter
 (private val mContext: Context,
@@ -69,6 +71,8 @@ return mPost.size
                         .child(post.getPostid())
                         .child(firebaseUser!!.uid)
                         .setValue(true)
+
+                addNotification(post.getPublisher(), post.getPostid())
             }
             else {
                 FirebaseDatabase.getInstance().reference
@@ -80,6 +84,14 @@ return mPost.size
                 val intent = Intent(mContext, MainActivity::class.java)
                 mContext.startActivity(intent)
             }
+        }
+
+        //set untuk
+        holder.likes.setOnClickListener {
+            val intent = Intent (mContext, ShowUsersActivity::class.java)
+            intent.putExtra("id", post.getPostid())
+            intent.putExtra("title", "likes")
+            mContext.startActivity(intent)
 
         }
 
@@ -263,6 +275,19 @@ return mPost.size
     }
 
 
+    private fun addNotification (userId: String, postId: String)
+    {
+        val notiRef = FirebaseDatabase.getInstance()
+                .reference.child("Notifications")
+                .child(userId)
 
+        val notiMap = HashMap<String, Any>()
+        notiMap["userid"] = firebaseUser!!.uid
+        notiMap["text"] = "like your post"
+        notiMap["postid"] = postId
+        notiMap["ispost"] = true
+
+        notiRef.push().setValue(notiMap)
+    }
 
 }

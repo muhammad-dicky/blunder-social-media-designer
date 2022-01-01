@@ -17,6 +17,7 @@ import com.cupangsawah.blunder.Adapter.MyImagesAdapter
 import com.cupangsawah.blunder.Model.Post
 import com.cupangsawah.blunder.Model.User
 import com.cupangsawah.blunder.R
+import com.cupangsawah.blunder.ShowUsersActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DataSnapshot
@@ -78,6 +79,7 @@ class ProfileFragment : Fragment() {
         }
 
 
+
         //recycler view untuk menampilkan grid foto horizontal (bagian Upload Images)
         var recyclerViewUploadImages: RecyclerView
         recyclerViewUploadImages = view.findViewById(R.id.recycler_view_upload_pic)
@@ -104,24 +106,37 @@ recyclerViewUploadImages.adapter = myImagesAdapter
 
 
         //pemanggilan fun masih error - 026
-//        recyclerViewSavedImages.visibility = View.GONE
-//        recyclerViewUploadImages.visibility = View.VISIBLE
-//
-//        var uploadedImgesBtn: ImageButton
-//        uploadedImgesBtn = view.findViewById(R.id.images_grid_view_btn)
-//        uploadedImgesBtn.setOnClickListener{
-//            recyclerViewSavedImages.visibility = View.GONE
-//            recyclerViewUploadImages.visibility = View.VISIBLE
-//        }
-//
-//        var savedImgesBtn: ImageButton
-//        savedImgesBtn = view.findViewById(R.id.images_save_btn)
-//        savedImgesBtn.setOnClickListener{
-//            recyclerViewSavedImages.visibility = View.VISIBLE
-//            recyclerViewUploadImages.visibility = View.GONE
-//        }
+        recyclerViewSavedImages.visibility = View.GONE
+        recyclerViewUploadImages.visibility = View.VISIBLE
 
-        ///batas bawah
+        var uploadedImgesBtn: ImageButton
+        uploadedImgesBtn = view.findViewById(R.id.images_grid_view_btn)
+        uploadedImgesBtn.setOnClickListener{
+            recyclerViewSavedImages.visibility = View.GONE
+            recyclerViewUploadImages.visibility = View.VISIBLE
+        }
+
+        var savedImgesBtn: ImageButton
+        savedImgesBtn = view.findViewById(R.id.images_save_btn)
+        savedImgesBtn.setOnClickListener{
+            recyclerViewSavedImages.visibility = View.VISIBLE
+            recyclerViewUploadImages.visibility = View.GONE
+        }
+
+        // deklar fun buat retrieve data total followers
+        // pass data dari fragment profile (pake putExtra)
+        view.total_followers.setOnClickListener {
+            val intent = Intent (context, ShowUsersActivity::class.java)
+            intent.putExtra("id", profileId)
+            intent.putExtra("title", "followers")
+            startActivity(intent)
+        }
+        view.total_following.setOnClickListener {
+            val intent = Intent (context, ShowUsersActivity::class.java)
+            intent.putExtra("id", profileId)
+            intent.putExtra("title", "following")
+            startActivity(intent)
+        }
 
 
 
@@ -144,6 +159,8 @@ recyclerViewUploadImages.adapter = myImagesAdapter
                                 .child("Followers").child(it1.toString())
                                 .setValue(true)
                     }
+
+                    addNotification()
                 }
 
                 getButtonText == "Following" -> {
@@ -372,6 +389,8 @@ recyclerViewUploadImages.adapter = myImagesAdapter
 
     }
 
+
+    // cek saves post data
     private fun mySaves()
     {
         mySavesImg = ArrayList()
@@ -403,7 +422,8 @@ recyclerViewUploadImages.adapter = myImagesAdapter
 
     // 026 - for profile saved images
     private fun readSavedImagesData() {
-        val postsRef = FirebaseDatabase.getInstance().reference.child("Posts")
+        val postsRef = FirebaseDatabase.getInstance()
+                .reference.child("Posts")
 
         postsRef.addValueEventListener(object : ValueEventListener
         {
@@ -428,10 +448,29 @@ recyclerViewUploadImages.adapter = myImagesAdapter
                 }
             }
 
-            override fun onCancelled(error: DatabaseError) {
+            override fun onCancelled(p0: DatabaseError) {
 
             }
         })
+    }
+
+
+
+
+
+    private fun addNotification ()
+    {
+        val notiRef = FirebaseDatabase.getInstance()
+                .reference.child("Notifications")
+                .child(profileId)
+
+        val notiMap = HashMap<String, Any>()
+        notiMap["userid"] = firebaseUser!!.uid
+        notiMap["text"] = "started following you"
+        notiMap["postid"] = ""
+        notiMap["ispost"] = false
+
+        notiRef.push().setValue(notiMap)
     }
 
 
