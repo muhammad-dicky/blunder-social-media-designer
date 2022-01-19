@@ -34,7 +34,7 @@ class SignUpActivity : AppCompatActivity() {
         val password = password_signup.text.toString()
 
         when{
-            TextUtils.isEmpty(fullName) -> Toast.makeText(this, "full name is required", Toast.LENGTH_LONG).show()
+            TextUtils.isEmpty(fullName) -> Toast.makeText(this, "mfull nae is required", Toast.LENGTH_LONG).show()
             TextUtils.isEmpty(userName) -> Toast.makeText(this, "user name is required", Toast.LENGTH_LONG).show()
             TextUtils.isEmpty(email) -> Toast.makeText(this, "email is required", Toast.LENGTH_LONG).show()
             TextUtils.isEmpty(password) -> Toast.makeText(this, "password is required", Toast.LENGTH_LONG).show()

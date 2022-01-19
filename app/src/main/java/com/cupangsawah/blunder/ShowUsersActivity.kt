@@ -66,6 +66,30 @@ class ShowUsersActivity : AppCompatActivity()
 
     // pakai cara yg sama di ProfileFragment fun numberOfLikes utk ambil data
     private fun getViews() {
+        val ref = FirebaseDatabase.getInstance().reference
+            .child("Story")
+            .child(id!!)
+            .child(intent.getStringExtra("storyid").toString())
+            .child("views")
+
+
+        ref.addValueEventListener(object : ValueEventListener
+        {
+            override fun onDataChange(p0: DataSnapshot)
+            {
+                (idList as ArrayList<String>).clear()
+
+                for (snapshot in p0.children)
+                {
+                    (idList as ArrayList<String>).add(snapshot.key!!)
+                }
+                showUsers()
+            }
+            override fun onCancelled(p0: DatabaseError)
+            {
+
+            }
+        })
 
     }
 

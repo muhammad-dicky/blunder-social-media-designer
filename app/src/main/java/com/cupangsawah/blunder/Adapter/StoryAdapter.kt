@@ -1,9 +1,11 @@
 package com.cupangsawah.blunder.Adapter
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.icu.number.NumberFormatter.with
 import android.icu.number.NumberRangeFormatter.with
+import android.media.Image
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,12 +19,15 @@ import com.cupangsawah.blunder.MainActivity
 import com.cupangsawah.blunder.Model.Story
 import com.cupangsawah.blunder.Model.User
 import com.cupangsawah.blunder.R
+import com.cupangsawah.blunder.StoryActivity
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.squareup.picasso.Picasso
 import de.hdodenhof.circleimageview.CircleImageView
+import kotlinx.android.synthetic.main.activity_story.*
 import kotlinx.android.synthetic.main.fragment_profile.view.*
 import java.security.AccessController.getContext
 
@@ -53,10 +58,27 @@ RecyclerView.Adapter<StoryAdapter.ViewHolder>()
 
         userInfo(holder, story.getUserId(), position)
 
+        if (holder.adapterPosition !== 0)
+        {
+            seenStory(holder, story.getUserId())
+        }
+        if (holder.adapterPosition === 0)
+        {
+            myStories(holder.addStory_text!!, holder.story_plus_btn!!, false)
+        }
+
+
+
         holder.itemView.setOnClickListener {
-            val intent = Intent(mContext, AddStoryActivity::class.java)
-            intent.putExtra("userid", story.getUserId())
-            mContext.startActivity(intent)
+            if (holder.adapterPosition === 0)
+            {
+                myStories(holder.addStory_text!!, holder.story_plus_btn!!, true)
+            }
+            else{
+                val intent = Intent(mContext, StoryActivity::class.java)
+                intent.putExtra("userId", story.getUserId())
+                mContext.startActivity(intent)
+            }
         }
     }
 
@@ -100,7 +122,8 @@ RecyclerView.Adapter<StoryAdapter.ViewHolder>()
     private fun userInfo(viewHolder: ViewHolder, userId: String, position: Int)
     {
         val usersRef = FirebaseDatabase.getInstance().getReference().child("Users").child(userId)
-        usersRef.addValueEventListener(object : ValueEventListener
+
+        usersRef.addListenerForSingleValueEvent(object : ValueEventListener
         {
             override fun onDataChange(p0: DataSnapshot) {
 
@@ -112,19 +135,138 @@ RecyclerView.Adapter<StoryAdapter.ViewHolder>()
 //                        .placeholder(R.drawable.profile)
 //                        .into(viewHolder.story_image)
 
+
+                    //java.lang.IllegalArgumentException: Target must not be null.
 //                    Picasso.get().load(user!!.getImage())
 //                        .placeholder(R.drawable.profile)
-//                        .into(viewHolder.story_image)
+//                        .into(viewHolder?.story_image)
+
 
 
                     if (position!=0)
                     {
                         Picasso.get().load(user!!.getImage()).placeholder(R.drawable.profile).into(viewHolder.story_image_seen)
-                        viewHolder?.story_username!!.text = user.getUsername()
+                        viewHolder.story_username!!.text = user.getUsername()
                     }
 
 
 
+                }
+            }
+
+            override fun onCancelled(p0: DatabaseError) {
+
+            }
+        })
+    }
+
+
+    private fun myStories(textView: TextView, imageView: ImageView, click: Boolean)
+    {
+        val storyRef = FirebaseDatabase.getInstance()
+                .reference.child("Story").child(FirebaseAuth.getInstance().currentUser!!.uid)
+
+        storyRef.addListenerForSingleValueEvent(object : ValueEventListener{
+
+            override fun onDataChange(p0: DataSnapshot) {
+                var counter = 0
+
+                val timeCurrent = System.currentTimeMillis()
+
+                for (snapshot in p0.children)
+                {
+                    val story = snapshot.getValue(Story::class.java)
+
+                    if (timeCurrent>story!!.getTimeStart() && timeCurrent<story!!.getTimeEnd())
+                    {
+                        counter++
+                    }
+                }
+
+                if (click)
+                {
+                    if (counter>0)
+                    {
+                        val alertDialog= AlertDialog.Builder(mContext).create()
+
+                        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "View Story")
+                        {
+                            dialogInterface, which ->
+
+                            val intent = Intent(mContext, StoryActivity::class.java)
+                            intent.putExtra("userId", FirebaseAuth.getInstance().currentUser!!.uid)
+                            mContext.startActivity(intent)
+                            dialogInterface.dismiss()
+                        }
+
+                        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Add Story")
+                        {
+                            dialogInterface, which ->
+
+                            val intent = Intent(mContext, AddStoryActivity::class.java)
+                            intent.putExtra("userId", FirebaseAuth.getInstance().currentUser!!.uid)
+                            mContext.startActivity(intent)
+                            dialogInterface.dismiss()
+                        }
+
+                        alertDialog.show()
+                    }
+                    else{
+                        val intent = Intent(mContext, AddStoryActivity::class.java)
+                        intent.putExtra("userId", FirebaseAuth.getInstance().currentUser!!.uid)
+                        mContext.startActivity(intent)
+
+                    }
+                }
+                else{
+                    if (counter>0)
+                    {
+                        textView.text = "My Story"
+                        imageView.visibility = View.GONE
+                    }
+                    else{
+                        textView.text = "Add Story"
+                        imageView.visibility = View.VISIBLE
+                    }
+
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+
+
+        })
+    }
+
+
+    private fun seenStory(viewHolder:ViewHolder, userId: String)
+    {
+        val storyRef = FirebaseDatabase.getInstance()
+                .reference.child("Story").child(userId)
+
+        storyRef.addValueEventListener(object: ValueEventListener
+        {
+            override fun onDataChange(p0: DataSnapshot) {
+                var i = 0
+                for (snapshot in p0.children)
+                {
+                    if (!snapshot.child("views")
+                                    .child(FirebaseAuth.getInstance().currentUser!!.uid).exists()
+                            && System.currentTimeMillis() < snapshot.getValue(Story::class.java)!!.getTimeEnd())
+                    {
+                        i++
+                    }
+                }
+                if (i>0)
+                {
+                    viewHolder.story_image!!.visibility = View.VISIBLE
+                    viewHolder.story_image_seen!!.visibility = View.GONE
+                }
+                else{
+                    viewHolder.story_image!!.visibility = View.GONE
+                    viewHolder.story_image_seen!!.visibility = View.VISIBLE
                 }
             }
 

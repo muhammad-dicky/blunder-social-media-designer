@@ -88,7 +88,10 @@ private var storageStoryPicRef: StorageReference? = null
                                 val downloadUrl = task.result
                                 myUrl = downloadUrl.toString()
 
-                                val ref = FirebaseDatabase.getInstance().reference.child("Story")
+                                val ref = FirebaseDatabase.getInstance().reference
+                                        .child("Story")
+                                        .child(FirebaseAuth.getInstance().currentUser!!.uid)
+
                                 val storyId = (ref.push().key).toString()
 
                                 //set story expired time
